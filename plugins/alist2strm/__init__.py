@@ -179,7 +179,7 @@ class Alist2Strm(_PluginBase):
 
             # 增量添加更新
 
-            self.process_files(self, mon_path, _strm_path)
+            self.process_files(mon_path, _strm_path)
 
     def process_files(self, mon_path, strm_path):
         fs_list = self.get_fs_list(mon_path)

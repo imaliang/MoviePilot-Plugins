@@ -75,9 +75,9 @@ class Alist2Strm(_PluginBase):
     # 任务执行间隔
     _cron = None
     _onlyonce = False
-    _fulladd = False
+    _monitor_dirs = None
     _storageplace = None
-    
+
     _alist_domain = None
     _strm_domain = None
     _token = None
@@ -93,7 +93,7 @@ class Alist2Strm(_PluginBase):
             self._enabled = config.get("enabled")
             self._cron = config.get("cron")
             self._onlyonce = config.get("onlyonce")
-            self._fulladd = config.get("fulladd")
+            self._monitor_dirs = config.get("monitor_dirs")
             self._storageplace = config.get("storageplace")
 
             self._alist_domain = config.get("alist_domain")
@@ -109,7 +109,7 @@ class Alist2Strm(_PluginBase):
                     self._scheduler.add_job(func=self.__task,
                                             trigger=CronTrigger.from_crontab(self._cron),
                                             name="Alist2Strm文件创建")
-                    logger.info(f'ANi-Strm定时任务创建成功：{self._cron}')
+                    logger.info(f'Alist2Strm定时任务创建成功：{self._cron}')
                 except Exception as err:
                     logger.error(f"定时任务配置错误：{str(err)}")
 
@@ -128,53 +128,27 @@ class Alist2Strm(_PluginBase):
                 self._scheduler.print_jobs()
                 self._scheduler.start()
 
-    def __get_ani_season(self, idx_month: int = None) -> str:
-        current_date = datetime.now()
-        current_year = current_date.year
-        current_month = idx_month if idx_month else current_date.month
-        for month in range(current_month, 0, -1):
-            if month in [10, 7, 4, 1]:
-                self._date = f'{current_year}-{month}'
-                return f'{current_year}-{month}'
+
 
     @retry(Exception, tries=3, logger=logger, ret=[])
-    def get_current_season_list(self) -> List:
-        url = f'https://aniopen.an-i.workers.dev/{self.__get_ani_season()}/'
-
-        rep = RequestUtils(ua=settings.USER_AGENT if settings.USER_AGENT else None,
-                           proxies=settings.PROXY if settings.PROXY else None).post(url=url)
-        logger.debug(rep.text)
-        files_json = rep.json()['files']
-        return [file['name'] for file in files_json]
-
-    @retry(Exception, tries=3, logger=logger, ret=[])
-    def get_latest_list(self) -> List:
-        addr = 'https://api.ani.rip/ani-download.xml'
+    def get_fs_list(self,path) -> List:
+        addr = f'{self._alist_domain}/api/fs/list'
+        data = {
+            "path": path,
+            # "page": 1,
+            # "per_page": 0,
+            "refresh": true
+            }
         ret = RequestUtils(ua=settings.USER_AGENT if settings.USER_AGENT else None,
-                           proxies=settings.PROXY if settings.PROXY else None).get_res(addr)
-        ret_xml = ret.text
-        ret_array = []
-        # 解析XML
-        dom_tree = xml.dom.minidom.parseString(ret_xml)
-        rootNode = dom_tree.documentElement
-        items = rootNode.getElementsByTagName("item")
-        for item in items:
-            rss_info = {}
-            # 标题
-            title = DomUtils.tag_value(item, "title", default="")
-            # 链接
-            link = DomUtils.tag_value(item, "link", default="")
-            rss_info['title'] = title
-            rss_info['link'] = link
-            ret_array.append(rss_info)
-        return ret_array
+                           proxies=settings.PROXY if settings.PROXY else None,
+                           content_type="application/json"
+                           ).post_res(url=addr, json=data)
+        content = ret.json()['data']['content']
+        return content
 
-    def __touch_strm_file(self, file_name, file_url: str = None) -> bool:
-        if not file_url:
-            src_url = f'https://resources.ani.rip/{self._date}/{file_name}?d=true'
-        else:
-            src_url = file_url
-        file_path = f'{self._storageplace}/{file_name}.strm'
+    def __touch_strm_file(self, file_name, mon_path, strm_path) -> bool:
+        src_url = f'{self.strm_domain}/{mon_path}/{file_name}'
+        file_path = f'{strm_path}/{mon_path}/{file_name}.strm'
         if os.path.exists(file_path):
             logger.debug(f'{file_name}.strm 文件已存在')
             return False
@@ -188,22 +162,45 @@ class Alist2Strm(_PluginBase):
             return False
 
     def __task(self, fulladd: bool = False):
-        cnt = 0
-        # 增量添加更新
-        if not fulladd:
-            rss_info_list = self.get_latest_list()
-            logger.info(f'本次处理 {len(rss_info_list)} 个文件')
-            for rss_info in rss_info_list:
-                if self.__touch_strm_file(file_name=rss_info['title'], file_url=rss_info['link']):
-                    cnt += 1
-        # 全量添加当季
-        else:
-            name_list = self.get_current_season_list()
-            logger.info(f'本次处理 {len(name_list)} 个文件')
-            for file_name in name_list:
-                if self.__touch_strm_file(file_name=file_name):
-                    cnt += 1
-        logger.info(f'新创建了 {cnt} 个strm文件')
+         # 读取目录配置
+        monitor_dirs = self._monitor_dirs.split("\n")
+        if not monitor_dirs:
+            return
+        
+        for mon_path in monitor_dirs:
+            # 格式源目录:目的目录
+            if not mon_path:
+                continue
+
+            # 自定义strm地址
+            _strm_path = "/media/strm"
+            if mon_path.count(":") == 1:
+                _strm_path = mon_path.split(":")[1]
+                mon_path = mon_path.split(":")[0]           
+
+                  
+            # 增量添加更新
+            
+            self.process_files(self,mon_path,_strm_path)
+            
+            
+    def process_files(self, mon_path,strm_path):
+        fs_list = self.get_fs_list(mon_path)
+        logger.info(f'本次处理 {len(fs_list)} 个文件(夹)')
+        for fs_info in fs_list:
+            if fs_info['is_dir']:
+                # 如果是文件夹，递归遍历
+                self.process_files(os.path.join(mon_path, fs_info['name']),strm_path)
+            else:
+                # 如果是文件，输出文件名
+                # 获取文件后缀
+                file_name= fs_info['name']
+                file_extension = os.path.splitext(file_name)[1]
+                if file_extension in ['.mkv', '.mp4', '.ts']:
+                    self.__touch_strm_file(file_name=file_name, mon_path=mon_path,strm_path=strm_path)
+                elif file_extension in ['.jpg', '.png']:
+                    # 执行逻辑2
+                    pass
 
     def get_state(self) -> bool:
         return self._enabled
@@ -258,22 +255,7 @@ class Alist2Strm(_PluginBase):
                                     }
                                 ]
                             },
-                            {
-                                'component': 'VCol',
-                                'props': {
-                                    'cols': 12,
-                                    'md': 4
-                                },
-                                'content': [
-                                    {
-                                        'component': 'VSwitch',
-                                        'props': {
-                                            'model': 'fulladd',
-                                            'label': '下次创建当前季度所有番剧strm',
-                                        }
-                                    }
-                                ]
-                            }
+                            
                         ]
                     },
                     {
@@ -365,7 +347,30 @@ class Alist2Strm(_PluginBase):
                                         }
                                     }
                                 ]
+                            },
+                             {
+                        'component': 'VRow',
+                        'content': [
+                            {
+                                'component': 'VCol',
+                                'props': {
+                                    'cols': 12
+                                },
+                                'content': [
+                                    {
+                                        'component': 'VTextarea',
+                                        'props': {
+                                            'model': 'monitor_dirs',
+                                            'label': '监控目录',
+                                            'rows': 5,
+                                            'placeholder': '每一行一个目录，格式如下：\n'
+                                                           '监控目录:Strm创建目录\n'
+                                        }
+                                    }
+                                ]
                             }
+                        ]
+                    },
                         ]
                     },
                     {
@@ -417,8 +422,11 @@ class Alist2Strm(_PluginBase):
             "onlyonce": self._onlyonce,
             "cron": self._cron,
             "enabled": self._enabled,
-            "fulladd": self._fulladd,
+            "monitor_dirs": self._monitor_dirs,
             "storageplace": self._storageplace,
+            "alist_domain": self._alist_domain,
+            "strm_domain": self._strm_domain,
+            "token": self._token,
         })
 
     def get_page(self) -> List[dict]:

@@ -42,7 +42,7 @@ def retry(ExceptionToCheck: Any,
                     mtries -= 1
                     mdelay *= backoff
             if logger:
-                logger.warn('https://aniopen.an-i.workers.dev/ 请确保当前季度番剧文件夹存在')
+                logger.warn('请确保当前配置是否正确')
             return ret
 
         return f_retry
@@ -58,7 +58,7 @@ class Alist2Strm(_PluginBase):
     # 插件图标
     plugin_icon = "https://raw.githubusercontent.com/alist-org/docs/main/docs/.vuepress/public/logo.png"
     # 插件版本
-    plugin_version = "1.1"
+    plugin_version = "1.2"
     # 插件作者
     plugin_author = "imaliang"
     # 作者主页
@@ -66,7 +66,7 @@ class Alist2Strm(_PluginBase):
     # 插件配置项ID前缀
     plugin_config_prefix = "alist2strm_"
     # 加载顺序
-    plugin_order = 20
+    plugin_order = 99
     # 可使用的用户级别
     auth_level = 2
 
@@ -107,20 +107,21 @@ class Alist2Strm(_PluginBase):
             if self._enabled and self._cron:
                 try:
                     self._scheduler.add_job(func=self.__task,
-                                            trigger=CronTrigger.from_crontab(self._cron),
+                                            trigger=CronTrigger.from_crontab(
+                                                self._cron),
                                             name="Alist2Strm文件创建")
                     logger.info(f'Alist2Strm定时任务创建成功：{self._cron}')
                 except Exception as err:
                     logger.error(f"定时任务配置错误：{str(err)}")
 
             if self._onlyonce:
-                logger.info(f"ANi-Strm服务启动，立即运行一次")
-                self._scheduler.add_job(func=self.__task, args=[self._fulladd], trigger='date',
-                                        run_date=datetime.now(tz=pytz.timezone(settings.TZ)) + timedelta(seconds=3),
+                logger.info(f"Alist2Strm服务启动，立即运行一次")
+                self._scheduler.add_job(func=self.__task, trigger='date',
+                                        run_date=datetime.now(tz=pytz.timezone(
+                                            settings.TZ)) + timedelta(seconds=3),
                                         name="Alist2Strm文件创建")
                 # 关闭一次性开关 全量转移
                 self._onlyonce = False
-                self._fulladd = False
             self.__update_config()
 
             # 启动任务
@@ -128,17 +129,15 @@ class Alist2Strm(_PluginBase):
                 self._scheduler.print_jobs()
                 self._scheduler.start()
 
-
-
     @retry(Exception, tries=3, logger=logger, ret=[])
-    def get_fs_list(self,path) -> List:
+    def get_fs_list(self, path) -> List:
         addr = f'{self._alist_domain}/api/fs/list'
         data = {
             "path": path,
             # "page": 1,
             # "per_page": 0,
             "refresh": true
-            }
+        }
         ret = RequestUtils(ua=settings.USER_AGENT if settings.USER_AGENT else None,
                            proxies=settings.PROXY if settings.PROXY else None,
                            content_type="application/json"
@@ -161,12 +160,12 @@ class Alist2Strm(_PluginBase):
             logger.error('创建strm源文件失败：' + str(e))
             return False
 
-    def __task(self, fulladd: bool = False):
-         # 读取目录配置
+    def __task(self):
+        # 读取目录配置
         monitor_dirs = self._monitor_dirs.split("\n")
         if not monitor_dirs:
             return
-        
+
         for mon_path in monitor_dirs:
             # 格式源目录:目的目录
             if not mon_path:
@@ -176,28 +175,28 @@ class Alist2Strm(_PluginBase):
             _strm_path = "/media/strm"
             if mon_path.count(":") == 1:
                 _strm_path = mon_path.split(":")[1]
-                mon_path = mon_path.split(":")[0]           
+                mon_path = mon_path.split(":")[0]
 
-                  
             # 增量添加更新
-            
-            self.process_files(self,mon_path,_strm_path)
-            
-            
-    def process_files(self, mon_path,strm_path):
+
+            self.process_files(self, mon_path, _strm_path)
+
+    def process_files(self, mon_path, strm_path):
         fs_list = self.get_fs_list(mon_path)
         logger.info(f'本次处理 {len(fs_list)} 个文件(夹)')
         for fs_info in fs_list:
             if fs_info['is_dir']:
                 # 如果是文件夹，递归遍历
-                self.process_files(os.path.join(mon_path, fs_info['name']),strm_path)
+                self.process_files(os.path.join(
+                    mon_path, fs_info['name']), strm_path)
             else:
                 # 如果是文件，输出文件名
                 # 获取文件后缀
-                file_name= fs_info['name']
+                file_name = fs_info['name']
                 file_extension = os.path.splitext(file_name)[1]
                 if file_extension in ['.mkv', '.mp4', '.ts']:
-                    self.__touch_strm_file(file_name=file_name, mon_path=mon_path,strm_path=strm_path)
+                    self.__touch_strm_file(
+                        file_name=file_name, mon_path=mon_path, strm_path=strm_path)
                 elif file_extension in ['.jpg', '.png']:
                     # 执行逻辑2
                     pass
@@ -255,7 +254,7 @@ class Alist2Strm(_PluginBase):
                                     }
                                 ]
                             },
-                            
+
                         ]
                     },
                     {
@@ -313,7 +312,7 @@ class Alist2Strm(_PluginBase):
                                 ]
                             },
 
-                            
+
                             {
                                 'component': 'VCol',
                                 'props': {
@@ -348,7 +347,10 @@ class Alist2Strm(_PluginBase):
                                     }
                                 ]
                             },
-                             {
+
+                        ]
+                    },
+                    {
                         'component': 'VRow',
                         'content': [
                             {
@@ -364,13 +366,11 @@ class Alist2Strm(_PluginBase):
                                             'label': '监控目录',
                                             'rows': 5,
                                             'placeholder': '每一行一个目录，格式如下：\n'
-                                                           '监控目录:Strm创建目录\n'
+                                            '监控目录:Strm创建目录\n'
                                         }
                                     }
                                 ]
                             }
-                        ]
-                    },
                         ]
                     },
                     {
@@ -412,7 +412,6 @@ class Alist2Strm(_PluginBase):
         ], {
             "enabled": False,
             "onlyonce": False,
-            "fulladd": False,
             "storageplace": '/downloads/strm',
             "cron": "*/20 22,23,0,1 * * *",
         }
@@ -446,7 +445,7 @@ class Alist2Strm(_PluginBase):
             logger.error("退出插件失败：%s" % str(e))
 
 
-if __name__ == "__main__":
-    alist2Strm = Alist2Strm()
-    name_list = alist2Strm.get_latest_list()
-    print(name_list)
+# if __name__ == "__main__":
+#     alist2Strm = Alist2Strm()
+#     name_list = alist2Strm.get_latest_list()
+#     print(name_list)

@@ -3,7 +3,7 @@
         "Alist2Strm": {
           "name": "Alist2Strm",
           "description": "自动获取Alist视频信息，生成strm文件，mp刮削入库，emby直接播放，免去下载，轻松拥有一个番剧媒体库",
-          "version": "1.0",
+          "version": "1.1",
           "icon": "https://raw.githubusercontent.com/alist-org/docs/main/docs/.vuepress/public/logo.png",
           "author": "imaliang",
           "level": 2

@@ -58,7 +58,7 @@ class Alist2Strm(_PluginBase):
     # 插件图标
     plugin_icon = "https://raw.githubusercontent.com/alist-org/docs/main/docs/.vuepress/public/logo.png"
     # 插件版本
-    plugin_version = "1.5"
+    plugin_version = "1.6"
     # 插件作者
     plugin_author = "imaliang"
     # 作者主页
@@ -129,16 +129,18 @@ class Alist2Strm(_PluginBase):
                 self._scheduler.print_jobs()
                 self._scheduler.start()
 
-    @retry(Exception, tries=3, logger=logger, ret=[])
+    # @retry(Exception, tries=3, logger=logger, ret=[])
     def get_fs_list(self, path) -> List:
+        logger.info(f'11111-path={path}')
         addr = f'{self._alist_domain}/api/fs/list'
+        logger.info(f'22222-addr={addr}')
         data = {
             "path": path,
             # "page": 1,
             # "per_page": 0,
             "refresh": true
         }
-        logger.info(f'addr={addr},data={data}')
+        logger.info(f'333333-data={data}')
         ret = RequestUtils(ua=settings.USER_AGENT if settings.USER_AGENT else None,
                            proxies=settings.PROXY if settings.PROXY else None,
                            content_type="application/json"

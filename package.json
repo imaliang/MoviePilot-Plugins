@@ -2,7 +2,7 @@
   "Alist2Strm": {
     "name": "Alist2Strm",
     "description": "自动获取Alist视频信息，生成strm文件，mp刮削入库，轻松打造媒体库",
-    "version": "1.7",
+    "version": "1.8",
     "icon": "https://raw.githubusercontent.com/alist-org/docs/main/docs/.vuepress/public/logo.png",
     "author": "imaliang",
     "level": 2

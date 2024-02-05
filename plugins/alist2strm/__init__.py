@@ -58,7 +58,7 @@ class Alist2Strm(_PluginBase):
     # 插件图标
     plugin_icon = "https://raw.githubusercontent.com/alist-org/docs/main/docs/.vuepress/public/logo.png"
     # 插件版本
-    plugin_version = "1.7"
+    plugin_version = "1.8"
     # 插件作者
     plugin_author = "imaliang"
     # 作者主页
@@ -140,12 +140,15 @@ class Alist2Strm(_PluginBase):
             # "per_page": 0,
             "refresh": True
         }
+        headers = {
+                "Authorization": self._token,
+                "Content-Type": "application/json; charset=utf-8"
+        }
         logger.info(f'333333-data={data}')
         ret = RequestUtils(ua=settings.USER_AGENT if settings.USER_AGENT else None,
-                           proxies=settings.PROXY if settings.PROXY else None,
-                           content_type="application/json"
+                           headers=headers
                            ).post_res(url=addr, json=data)
-        logger.info(f'ret={ret}')
+        logger.info(f'get_fs_list response={ret.json()}')
         content = ret.json()['data']['content']
         return content
 

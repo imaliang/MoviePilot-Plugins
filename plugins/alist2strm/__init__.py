@@ -58,7 +58,7 @@ class Alist2Strm(_PluginBase):
     # 插件图标
     plugin_icon = "https://raw.githubusercontent.com/alist-org/docs/main/docs/.vuepress/public/logo.png"
     # 插件版本
-    plugin_version = "1.8"
+    plugin_version = "1.9"
     # 插件作者
     plugin_author = "imaliang"
     # 作者主页
@@ -131,9 +131,7 @@ class Alist2Strm(_PluginBase):
 
     # @retry(Exception, tries=3, logger=logger, ret=[])
     def get_fs_list(self, path) -> List:
-        logger.info(f'11111-path={path}')
         addr = f'{self._alist_domain}/api/fs/list'
-        logger.info(f'22222-addr={addr}')
         data = {
             "path": path,
             # "page": 1,
@@ -144,28 +142,47 @@ class Alist2Strm(_PluginBase):
                 "Authorization": self._token,
                 "Content-Type": "application/json; charset=utf-8"
         }
-        logger.info(f'333333-data={data}')
+        logger.debug(f'get_fs_list url={addr},data={data},headers={headers}')
         ret = RequestUtils(ua=settings.USER_AGENT if settings.USER_AGENT else None,
                            headers=headers
                            ).post_res(url=addr, json=data)
-        logger.info(f'get_fs_list response={ret.json()}')
+        logger.debug(f'get_fs_list response={ret.json()}')
         content = ret.json()['data']['content']
         return content
 
     def __touch_strm_file(self, file_name, mon_path, strm_path) -> bool:
-        src_url = f'{self.strm_domain}/{mon_path}/{file_name}'
-        file_path = f'{strm_path}/{mon_path}/{file_name}.strm'
+        base_name, extension = os.path.splitext(file_name)
+        src_url = f'{self._strm_domain}/{mon_path}/{file_name}'
+        file_path = f'{strm_path}/{mon_path}/{base_name}.strm'
         if os.path.exists(file_path):
-            logger.debug(f'{file_name}.strm 文件已存在')
+            logger.debug(f'{base_name}.strm 文件已存在')
             return False
         try:
             with open(file_path, 'w') as file:
                 file.write(src_url)
-                logger.debug(f'创建 {file_name}.strm 文件成功')
+                logger.debug(f'创建 {base_name}.strm 文件成功')
                 return True
         except Exception as e:
             logger.error('创建strm源文件失败：' + str(e))
             return False
+
+    def __down_img_nfo_file(self, file_name, mon_path, strm_path) -> bool:
+        src_url = f'{self._strm_domain}/{mon_path}/{file_name}'
+        file_path = f'{strm_path}/{mon_path}/{file_name}'
+        if os.path.exists(file_path):
+            logger.debug(f'{file_name} 文件已存在')
+            return False
+        
+        try:
+            response = RequestUtils.get_res(src_url)
+            with open(file_path, 'wb') as file:
+                file.write(response.content)
+                logger.debug(f'下载 {file_name} 文件成功')
+                return True
+        except Exception as e:
+            logger.error(f'下载 {file_name} 文件失败：{str(e)}')
+            return False
+
 
     def __task(self):
         # 读取目录配置
@@ -202,11 +219,11 @@ class Alist2Strm(_PluginBase):
                 file_name = fs_info['name']
                 file_extension = os.path.splitext(file_name)[1]
                 if file_extension in ['.mkv', '.mp4', '.ts']:
-                    self.__touch_strm_file(
-                        file_name=file_name, mon_path=mon_path, strm_path=strm_path)
+                    self.__touch_strm_file(file_name=file_name, mon_path=mon_path, strm_path=strm_path)
                 elif file_extension in ['.jpg', '.png']:
-                    # 执行逻辑2
-                    pass
+                    self.__down_img_nfo_file(file_name=file_name, mon_path=mon_path, strm_path=strm_path)
+                else:
+                    logger.error(f'{file_name} 文件格式跳过')
 
     def get_state(self) -> bool:
         return self._enabled

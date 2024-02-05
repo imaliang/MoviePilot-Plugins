@@ -54,11 +54,11 @@ class Alist2Strm(_PluginBase):
     # 插件名称
     plugin_name = "Alist2Strm"
     # 插件描述
-    plugin_desc = "自动获取Alist视频信息，生成strm文件，mp刮削入库，emby直接播放，免去下载，轻松拥有一个番剧媒体库"
+    plugin_desc = "自动获取Alist视频信息，生成strm文件，mp刮削入库，轻松打造媒体库"
     # 插件图标
     plugin_icon = "https://raw.githubusercontent.com/alist-org/docs/main/docs/.vuepress/public/logo.png"
     # 插件版本
-    plugin_version = "1.9"
+    plugin_version = "1.10"
     # 插件作者
     plugin_author = "imaliang"
     # 作者主页
@@ -66,7 +66,7 @@ class Alist2Strm(_PluginBase):
     # 插件配置项ID前缀
     plugin_config_prefix = "alist2strm_"
     # 加载顺序
-    plugin_order = 1
+    plugin_order = 0
     # 可使用的用户级别
     auth_level = 2
 
@@ -158,6 +158,10 @@ class Alist2Strm(_PluginBase):
             logger.debug(f'{base_name}.strm 文件已存在')
             return False
         try:
+            dir_path = os.path.dirname(file_path)
+            if not os.path.exists(dir_path):
+                os.makedirs(dir_path)
+
             with open(file_path, 'w') as file:
                 file.write(src_url)
                 logger.debug(f'创建 {base_name}.strm 文件成功')
@@ -174,7 +178,12 @@ class Alist2Strm(_PluginBase):
             return False
         
         try:
-            response = RequestUtils.get_res(src_url)
+            dir_path = os.path.dirname(file_path)
+            if not os.path.exists(dir_path):
+                os.makedirs(dir_path)
+
+            response = RequestUtils(ua=settings.USER_AGENT if settings.USER_AGENT else None
+                          ).get_res(url=src_url)
             with open(file_path, 'wb') as file:
                 file.write(response.content)
                 logger.debug(f'下载 {file_name} 文件成功')
@@ -220,7 +229,7 @@ class Alist2Strm(_PluginBase):
                 file_extension = os.path.splitext(file_name)[1]
                 if file_extension in ['.mkv', '.mp4', '.ts']:
                     self.__touch_strm_file(file_name=file_name, mon_path=mon_path, strm_path=strm_path)
-                elif file_extension in ['.jpg', '.png']:
+                elif file_extension in ['.jpg','.jpeg', '.png', '.svg', '.webp', '.nfo']:
                     self.__down_img_nfo_file(file_name=file_name, mon_path=mon_path, strm_path=strm_path)
                 else:
                     logger.error(f'{file_name} 文件格式跳过')

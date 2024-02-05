@@ -33,7 +33,7 @@ def retry(ExceptionToCheck: Any,
                 try:
                     return f(*args, **kwargs)
                 except ExceptionToCheck as e:
-                    msg = f"未获取到文件信息，{mdelay}秒后重试 ..."
+                    msg = f"未获取到文件信息，{mdelay}秒后重试 ...ex={e}"
                     if logger:
                         logger.warn(msg)
                     else:
@@ -58,7 +58,7 @@ class Alist2Strm(_PluginBase):
     # 插件图标
     plugin_icon = "https://raw.githubusercontent.com/alist-org/docs/main/docs/.vuepress/public/logo.png"
     # 插件版本
-    plugin_version = "1.4"
+    plugin_version = "1.5"
     # 插件作者
     plugin_author = "imaliang"
     # 作者主页

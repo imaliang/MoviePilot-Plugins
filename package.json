@@ -6,5 +6,13 @@
     "icon": "https://raw.githubusercontent.com/alist-org/docs/main/docs/.vuepress/public/logo.png",
     "author": "imaliang",
     "level": 2
+  },
+  "cnlangsignin": {
+    "name": "cnlangsignin",
+    "description": "国语视界签到",
+    "version": "1.0",
+    "icon": "https://raw.githubusercontent.com/alist-org/docs/main/docs/.vuepress/public/logo.png",
+    "author": "imaliang",
+    "level": 2
   }
 }

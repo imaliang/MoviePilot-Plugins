@@ -58,7 +58,7 @@ class Alist2Strm(_PluginBase):
     # 插件图标
     plugin_icon = "https://raw.githubusercontent.com/alist-org/docs/main/docs/.vuepress/public/logo.png"
     # 插件版本
-    plugin_version = "1.10"
+    plugin_version = "1.12"
     # 插件作者
     plugin_author = "imaliang"
     # 作者主页
@@ -139,8 +139,8 @@ class Alist2Strm(_PluginBase):
             "refresh": True
         }
         headers = {
-                "Authorization": self._token,
-                "Content-Type": "application/json; charset=utf-8"
+            "Authorization": self._token,
+            "Content-Type": "application/json; charset=utf-8"
         }
         logger.debug(f'get_fs_list url={addr},data={data},headers={headers}')
         ret = RequestUtils(ua=settings.USER_AGENT if settings.USER_AGENT else None,
@@ -176,14 +176,14 @@ class Alist2Strm(_PluginBase):
         if os.path.exists(file_path):
             logger.debug(f'{file_name} 文件已存在')
             return False
-        
+
         try:
             dir_path = os.path.dirname(file_path)
             if not os.path.exists(dir_path):
                 os.makedirs(dir_path)
 
             response = RequestUtils(ua=settings.USER_AGENT if settings.USER_AGENT else None
-                          ).get_res(url=src_url)
+                                    ).get_res(url=src_url)
             with open(file_path, 'wb') as file:
                 file.write(response.content)
                 logger.debug(f'下载 {file_name} 文件成功')
@@ -191,7 +191,6 @@ class Alist2Strm(_PluginBase):
         except Exception as e:
             logger.error(f'下载 {file_name} 文件失败：{str(e)}')
             return False
-
 
     def __task(self):
         # 读取目录配置
@@ -228,9 +227,11 @@ class Alist2Strm(_PluginBase):
                 file_name = fs_info['name']
                 file_extension = os.path.splitext(file_name)[1]
                 if file_extension in ['.mkv', '.mp4', '.ts']:
-                    self.__touch_strm_file(file_name=file_name, mon_path=mon_path, strm_path=strm_path)
-                elif file_extension in ['.jpg','.jpeg', '.png', '.svg', '.webp', '.nfo']:
-                    self.__down_img_nfo_file(file_name=file_name, mon_path=mon_path, strm_path=strm_path)
+                    self.__touch_strm_file(
+                        file_name=file_name, mon_path=mon_path, strm_path=strm_path)
+                elif file_extension in ['.jpg', '.jpeg', '.png', '.svg', '.webp', '.nfo']:
+                    self.__down_img_nfo_file(
+                        file_name=file_name, mon_path=mon_path, strm_path=strm_path)
                 else:
                     logger.error(f'{file_name} 文件格式跳过')
 

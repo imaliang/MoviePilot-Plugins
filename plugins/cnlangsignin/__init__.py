@@ -14,9 +14,10 @@ from app.schemas import NotificationType
 from app.utils.http import RequestUtils
 from bs4 import BeautifulSoup
 
-class InvitesSignin(_PluginBase):
+
+class cnlangsignin(_PluginBase):
     # 插件名称
-    plugin_name = "国语世界签到"
+    plugin_name = "cnlangsignin"
     # 插件描述
     plugin_desc = "国语世界签到。"
     # 插件图标
@@ -26,9 +27,9 @@ class InvitesSignin(_PluginBase):
     # 插件版本
     plugin_version = "1.0"
     # 插件作者
-    plugin_author = "kaido"
+    plugin_author = "imaliang"
     # 作者主页
-    author_url = "https://github.com/thsrite"
+    author_url = "https://github.com/imaliang"
     # 插件配置项ID前缀
     plugin_config_prefix = "cnlangsignin_"
     # 加载顺序
@@ -66,7 +67,8 @@ class InvitesSignin(_PluginBase):
             if self._cron:
                 try:
                     self._scheduler.add_job(func=self.__signin,
-                                            trigger=CronTrigger.from_crontab(self._cron),
+                                            trigger=CronTrigger.from_crontab(
+                                                self._cron),
                                             name="国语世界签到")
                 except Exception as err:
                     logger.error(f"定时任务配置错误：{str(err)}")
@@ -74,7 +76,8 @@ class InvitesSignin(_PluginBase):
             if self._onlyonce:
                 logger.info(f"国语世界签到服务启动，立即运行一次")
                 self._scheduler.add_job(func=self.__signin, trigger='date',
-                                        run_date=datetime.now(tz=pytz.timezone(settings.TZ)) + timedelta(seconds=3),
+                                        run_date=datetime.now(tz=pytz.timezone(
+                                            settings.TZ)) + timedelta(seconds=3),
                                         name="国语世界签到")
                 # 关闭一次性开关
                 self._onlyonce = False
@@ -109,8 +112,8 @@ class InvitesSignin(_PluginBase):
         # 访问Pc主页
         print(flb_url)
 
-
-        res = RequestUtils(headers=headers).get_res(url='https://' + flb_url + '/dsu_paulsign-sign.html?mobile=no')
+        res = RequestUtils(headers=headers).get_res(
+            url='https://' + flb_url + '/dsu_paulsign-sign.html?mobile=no')
         if not res or res.status_code != 200:
             logger.error("请求国语世界错误")
             return
@@ -132,17 +135,19 @@ class InvitesSignin(_PluginBase):
         formhash_input = soup.find('input', {'name': 'formhash'})
 
         # 从 input 标签中提取 formhash 的值
-        formhash_value = re.search(r'value="(.+?)"', str(formhash_input)).group(1)
-
+        formhash_value = re.search(
+            r'value="(.+?)"', str(formhash_input)).group(1)
 
         # 随机获取心情
-        xq = RequestUtils(headers={}).get_res(url='https://v1.hitokoto.cn/?encode=text').text
-        
+        xq = RequestUtils(headers={}).get_res(
+            url='https://v1.hitokoto.cn/?encode=text').text
+
         # 保证字数符合要求
         logger.info("想说的话：" + xq)
-        while(len(xq)<6 | len(xq)>50):
-            xq = RequestUtils(headers={}).get_res(url='https://v1.hitokoto.cn/?encode=text').text
-        
+        while (len(xq) < 6 | len(xq) > 50):
+            xq = RequestUtils(headers={}).get_res(
+                url='https://v1.hitokoto.cn/?encode=text').text
+
             logger.info("想说的话：" + xq)
         # if user_name:
         #     logger.info("登录用户名为：" + user_name.group(1))
@@ -155,10 +160,12 @@ class InvitesSignin(_PluginBase):
         qiandao_url = 'plugin.php?id=dsu_paulsign:sign&operation=qiandao&infloat=1'
 
         # 签到
-        payload = dict(formhash=formhash_value, qdxq='kx', qdmode='1', todaysay=xq, fastreply='0')
+        payload = dict(formhash=formhash_value, qdxq='kx',
+                       qdmode='1', todaysay=xq, fastreply='0')
         # qdjg = s.post('https://' + flb_url + '/' + qiandao_url, headers=headers,data= payload).text
 
-        qdjg = RequestUtils(headers=headers).post_res(url=f"https://{flb_url}/{qiandao_url}", json=payload).text
+        qdjg = RequestUtils(headers=headers).post_res(
+            url=f"https://{flb_url}/{qiandao_url}", json=payload).text
 
         html = qdjg
 
@@ -168,16 +175,16 @@ class InvitesSignin(_PluginBase):
         logger.info(content)
         # 获取积分
 
-        user_info = RequestUtils(headers=headers).get_res(url=f"https://{flb_url}/home.php?mod=spacecp&ac=credit&showcredit=1&inajax=1&ajaxtarget=extcreditmenu_menu").text
-        
+        user_info = RequestUtils(headers=headers).get_res(
+            url=f"https://{flb_url}/home.php?mod=spacecp&ac=credit&showcredit=1&inajax=1&ajaxtarget=extcreditmenu_menu").text
+
         # user_info = s.get('https://' + flb_url + '/home.php?mod=spacecp&ac=credit&showcredit=1&inajax=1&ajaxtarget=extcreditmenu_menu', headers=headers).text
-        current_money = re.search(r'<span id="hcredit_2">(\d+)</span>', user_info).group(1)
-        log_info = content + "当前大洋余额{}".format( current_money)
+        current_money = re.search(
+            r'<span id="hcredit_2">(\d+)</span>', user_info).group(1)
+        log_info = content + "当前大洋余额{}".format(current_money)
         logger.info(log_info)
         # send("签到结果", log_info)
 
-
-    
         # if not res or res.status_code != 200:
         #     logger.error("国语世界签到失败")
         #     return
@@ -209,129 +216,129 @@ class InvitesSignin(_PluginBase):
         拼装插件配置页面，需要返回两块数据：1、页面配置；2、数据结构
         """
         return [
-                   {
-                       'component': 'VForm',
-                       'content': [
-                           {
-                               'component': 'VRow',
-                               'content': [
-                                   {
-                                       'component': 'VCol',
-                                       'props': {
-                                           'cols': 12,
-                                           'md': 4
-                                       },
-                                       'content': [
-                                           {
-                                               'component': 'VSwitch',
-                                               'props': {
-                                                   'model': 'enabled',
-                                                   'label': '启用插件',
-                                               }
-                                           }
-                                       ]
-                                   },
-                                   {
-                                       'component': 'VCol',
-                                       'props': {
-                                           'cols': 12,
-                                           'md': 4
-                                       },
-                                       'content': [
-                                           {
-                                               'component': 'VSwitch',
-                                               'props': {
-                                                   'model': 'notify',
-                                                   'label': '开启通知',
-                                               }
-                                           }
-                                       ]
-                                   },
-                                   {
-                                       'component': 'VCol',
-                                       'props': {
-                                           'cols': 12,
-                                           'md': 4
-                                       },
-                                       'content': [
-                                           {
-                                               'component': 'VSwitch',
-                                               'props': {
-                                                   'model': 'onlyonce',
-                                                   'label': '立即运行一次',
-                                               }
-                                           }
-                                       ]
-                                   }
-                               ]
-                           },
-                           {
-                               'component': 'VRow',
-                               'content': [
-                                   {
-                                       'component': 'VCol',
-                                       'props': {
-                                           'cols': 12,
-                                           'md': 6
-                                       },
-                                       'content': [
-                                           {
-                                               'component': 'VTextField',
-                                               'props': {
-                                                   'model': 'cron',
-                                                   'label': '签到周期'
-                                               }
-                                           }
-                                       ]
-                                   },
-                                   {
-                                       'component': 'VCol',
-                                       'props': {
-                                           'cols': 12,
-                                           'md': 6
-                                       },
-                                       'content': [
-                                           {
-                                               'component': 'VTextField',
-                                               'props': {
-                                                   'model': 'cookie',
-                                                   'label': '国语视界cookie'
-                                               }
-                                           }
-                                       ]
-                                   }
-                               ]
-                           },
-                           {
-                                'component': 'VRow',
+            {
+                'component': 'VForm',
+                'content': [
+                    {
+                        'component': 'VRow',
+                        'content': [
+                            {
+                                'component': 'VCol',
+                                'props': {
+                                    'cols': 12,
+                                    'md': 4
+                                },
                                 'content': [
                                     {
-                                        'component': 'VCol',
+                                        'component': 'VSwitch',
                                         'props': {
-                                            'cols': 12,
-                                        },
-                                        'content': [
-                                            {
-                                                'component': 'VAlert',
-                                                'props': {
-                                                    'type': 'info',
-                                                    'variant': 'tonal',
-                                                    'text': '整点定时签到失败？不妨换个时间试试'
-                                                }
-                                            }
-                                        ]
+                                            'model': 'enabled',
+                                            'label': '启用插件',
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                'component': 'VCol',
+                                'props': {
+                                    'cols': 12,
+                                    'md': 4
+                                },
+                                'content': [
+                                    {
+                                        'component': 'VSwitch',
+                                        'props': {
+                                            'model': 'notify',
+                                            'label': '开启通知',
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                'component': 'VCol',
+                                'props': {
+                                    'cols': 12,
+                                    'md': 4
+                                },
+                                'content': [
+                                    {
+                                        'component': 'VSwitch',
+                                        'props': {
+                                            'model': 'onlyonce',
+                                            'label': '立即运行一次',
+                                        }
                                     }
                                 ]
                             }
-                       ]
-                   }
-               ], {
-                   "enabled": False,
-                   "onlyonce": False,
-                   "notify": False,
-                   "cookie": "",
-                   "cron": "0 9 * * *"
-               }
+                        ]
+                    },
+                    {
+                        'component': 'VRow',
+                        'content': [
+                            {
+                                'component': 'VCol',
+                                'props': {
+                                    'cols': 12,
+                                    'md': 6
+                                },
+                                'content': [
+                                    {
+                                        'component': 'VTextField',
+                                        'props': {
+                                            'model': 'cron',
+                                            'label': '签到周期'
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                'component': 'VCol',
+                                'props': {
+                                    'cols': 12,
+                                    'md': 6
+                                },
+                                'content': [
+                                    {
+                                        'component': 'VTextField',
+                                        'props': {
+                                            'model': 'cookie',
+                                            'label': '国语视界cookie'
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        'component': 'VRow',
+                        'content': [
+                            {
+                                'component': 'VCol',
+                                'props': {
+                                    'cols': 12,
+                                },
+                                'content': [
+                                    {
+                                        'component': 'VAlert',
+                                        'props': {
+                                            'type': 'info',
+                                            'variant': 'tonal',
+                                            'text': '整点定时签到失败？不妨换个时间试试'
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ], {
+            "enabled": False,
+            "onlyonce": False,
+            "notify": False,
+            "cookie": "",
+            "cron": "0 9 * * *"
+        }
 
     def get_page(self) -> List[dict]:
         pass

@@ -18,13 +18,13 @@ from app.schemas import Notification, NotificationType, MessageChannel
 
 class CustomCommandPlus(_PluginBase):
     # 插件名称
-    plugin_name = "自定义命令增强版"
+    plugin_name = "自定义命令自用版"
     # 插件描述
     plugin_desc = "自定义执行周期执行命令并推送结果。"
     # 插件图标
     plugin_icon = "https://raw.githubusercontent.com/imaliang/MoviePilot-Plugins/main/icons/bot.png"
     # 插件版本
-    plugin_version = "0.6"
+    plugin_version = "0.7"
     # 插件作者
     plugin_author = "imaliang"
     # 作者主页
@@ -46,8 +46,6 @@ class CustomCommandPlus(_PluginBase):
     _history_days = None
     _notify_keywords = None
     _scheduler: Optional[BackgroundScheduler] = None
-    _python_lib_reinstall: bool = False
-    _python_lib: str = None
 
     def init_plugin(self, config: dict = None):
         # 停止现有任务
@@ -62,21 +60,6 @@ class CustomCommandPlus(_PluginBase):
             self._history_days = config.get("history_days") or 30
             self._notify_keywords = config.get("notify_keywords")
             self._time_confs = config.get("time_confs")
-            self._python_lib_reinstall = config.get("python_lib_reinstall")
-            self._python_lib = config.get("python_lib")
-            # 安装三方库
-            if self._python_lib:
-                if self._python_lib_reinstall:
-                    logger.info("python库开始重新安装...")
-                    for py_lib in self._python_lib.split("\n"):
-                        if py_lib:
-                            self.__install(py_lib)
-                    self._python_lib_reinstall = False
-                    self.__update_config()
-                else:
-                    for py_lib in self._python_lib.split("\n"):
-                        if py_lib:
-                            self.__check_and_install(py_lib)
 
             # 清除历史
             if self._clear:
@@ -228,40 +211,6 @@ class CustomCommandPlus(_PluginBase):
         logger.info(f"解析出结果对象：{result_obj}")
         return result_obj
 
-    def __install(self, lib):
-        if '==' in lib:
-            command = f"pip install {lib}"
-        else:
-            command = f"pip install -U {lib}"
-        result = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        while True:
-            error = result.stderr.readline().decode("utf-8")
-            if error == '' and result.poll() is not None:
-                break
-            if error:
-                logger.info(error.strip())
-        while True:
-            output = result.stdout.readline().decode("utf-8")
-            if output == '' and result.poll() is not None:
-                break
-            if output:
-                logger.info(output.strip())
-
-    def __check_and_install(self, lib):
-        try:
-            # 调用 pip show 命令
-            result = subprocess.run(
-                ["pip", "show", lib],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                check=True
-            )
-            logger.info(f"{lib} 已安装")
-        except subprocess.CalledProcessError:
-            logger.info(f"{lib} 未安装，开始安装...")
-            self.__install(lib)
-
     def __update_config(self):
         self.update_config({
             "enabled": self._enabled,
@@ -271,9 +220,7 @@ class CustomCommandPlus(_PluginBase):
             "time_confs": self._time_confs,
             "history_days": self._history_days,
             "notify_keywords": self._notify_keywords,
-            "clear": self._clear,
-            "python_lib_reinstall": self._python_lib_reinstall,
-            "python_lib": self._python_lib
+            "clear": self._clear
         })
 
     def get_state(self) -> bool:
@@ -377,7 +324,7 @@ class CustomCommandPlus(_PluginBase):
                                 'component': 'VCol',
                                 'props': {
                                     'cols': 12,
-                                    'md': 3
+                                    'md': 4
                                 },
                                 'content': [
                                     {
@@ -396,7 +343,7 @@ class CustomCommandPlus(_PluginBase):
                                 'component': 'VCol',
                                 'props': {
                                     'cols': 12,
-                                    'md': 3
+                                    'md': 4
                                 },
                                 'content': [
                                     {
@@ -412,7 +359,7 @@ class CustomCommandPlus(_PluginBase):
                                 'component': 'VCol',
                                 'props': {
                                     'cols': 12,
-                                    'md': 3
+                                    'md': 4
                                 },
                                 'content': [
                                     {
@@ -424,23 +371,7 @@ class CustomCommandPlus(_PluginBase):
                                         }
                                     }
                                 ]
-                            },
-                            {
-                                'component': 'VCol',
-                                'props': {
-                                    'cols': 12,
-                                    'md': 3
-                                },
-                                'content': [
-                                    {
-                                        'component': 'VSwitch',
-                                        'props': {
-                                            'model': 'python_lib_reinstall',
-                                            'label': 'python库重装',
-                                        }
-                                    }
-                                ]
-                            },
+                            }
                         ]
                     },
                     {
@@ -460,30 +391,6 @@ class CustomCommandPlus(_PluginBase):
                                             'rows': 3,
                                             'placeholder': '命令名#0 9 * * *#python main.py\n'
                                                            '命令名#0 9 * * *#python main.py#1-600'
-                                        }
-                                    }
-                                ]
-                            },
-                        ]
-                    },
-                    {
-                        'component': 'VRow',
-                        'content': [
-                            {
-                                'component': 'VCol',
-                                'props': {
-                                    'cols': 12,
-                                },
-                                'content': [
-                                    {
-                                        'component': 'VTextarea',
-                                        'props': {
-                                            'model': 'python_lib',
-                                            'label': 'python库',
-                                            'rows': 3,
-                                            'placeholder': '一行一个\n'
-                                                           'requests  不指定版本号\n'
-                                                           'requests==2.28.1  指定版本号'
                                         }
                                     }
                                 ]
@@ -542,9 +449,7 @@ class CustomCommandPlus(_PluginBase):
             "time_confs": "",
             "history_days": 30,
             "notify_keywords": "",
-            "msgtype": "",
-            "python_lib_reinstall": False,
-            "python_lib": "",
+            "msgtype": ""
         }
 
     def get_page(self) -> List[dict]:

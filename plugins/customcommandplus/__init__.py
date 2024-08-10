@@ -395,7 +395,7 @@ class CustomCommandPlus(_PluginBase):
                                         'props': {
                                             'model': 'time_confs',
                                             'label': '执行命令',
-                                            'rows': 3,
+                                            'rows': 5,
                                             'placeholder': '命令名#0 9 * * *#python main.py\n'
                                                            '命令名#0 9 * * *#python main.py#1-600'
                                         }

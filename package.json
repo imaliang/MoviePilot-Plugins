@@ -26,7 +26,7 @@
   "CustomCommandPlus": {
     "name": "自定义命令自用版",
     "description": "自定义执行周期执行命令并推送结果",
-    "version": "0.7",
+    "version": "0.8",
     "icon": "https://raw.githubusercontent.com/imaliang/MoviePilot-Plugins/main/icons/bot.png",
     "author": "imaliang",
     "level": 1,

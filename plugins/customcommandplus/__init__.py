@@ -24,7 +24,7 @@ class CustomCommandPlus(_PluginBase):
     # 插件图标
     plugin_icon = "https://raw.githubusercontent.com/imaliang/MoviePilot-Plugins/main/icons/bot.png"
     # 插件版本
-    plugin_version = "0.7"
+    plugin_version = "0.8"
     # 插件作者
     plugin_author = "imaliang"
     # 作者主页
@@ -127,28 +127,35 @@ class CustomCommandPlus(_PluginBase):
             logger.info(f"随机延时 {random_delay} 秒")
             time.sleep(random_delay)
 
-        result = subprocess.Popen(
-            command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         last_output = None
         last_error = None
+        logger.info("-----------------------0.5")
+
+        result = subprocess.Popen(
+            command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
 
         while True:
-            error = result.stderr.readline().decode("utf-8")
-            if error == '' and result.poll() is not None:
-                break
-            if error:
-                logger.info(error.strip())
-                last_error = error.strip()
-        while True:
-            output = result.stdout.readline().decode("utf-8")
+            output = result.stdout.readline()
             if output == '' and result.poll() is not None:
                 break
             if output:
                 logger.info(output.strip())
                 last_output = output.strip()
 
+        while True:
+            error = result.stderr.readline()
+            if error == '' and result.poll() is not None:
+                break
+            if error:
+                logger.error(error.strip())
+                last_error = error.strip()
+
+        if result.returncode == 0:
+            logger.info(f"执行命令：{command} 成功")
+        else:
+            logger.error(f"执行命令：{command} 失败")
+
         result_obj = self.__load_result(last_output if last_output else last_error)
-        logger.info(f"执行命令：{command} {'成功' if result.returncode == 0 else '失败'}")
 
         # 读取历史记录
         history = self.get_data('history') or []

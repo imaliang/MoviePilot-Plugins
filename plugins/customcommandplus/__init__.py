@@ -24,7 +24,7 @@ class CustomCommandPlus(_PluginBase):
     # 插件图标
     plugin_icon = "https://raw.githubusercontent.com/imaliang/MoviePilot-Plugins/main/icons/bot.png"
     # 插件版本
-    plugin_version = "0.8"
+    plugin_version = "0.9"
     # 插件作者
     plugin_author = "imaliang"
     # 作者主页
@@ -129,7 +129,6 @@ class CustomCommandPlus(_PluginBase):
 
         last_output = None
         last_error = None
-        logger.info("-----------------------0.5")
 
         result = subprocess.Popen(
             command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)

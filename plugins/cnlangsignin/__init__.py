@@ -25,7 +25,7 @@ class CnlangSignin(_PluginBase):
     # 插件图标
     plugin_icon = "https://raw.githubusercontent.com/imaliang/MoviePilot-Plugins/main/icons/cnlang.png"
     # 插件版本
-    plugin_version = "1.1"
+    plugin_version = "1.2"
     # 插件作者
     plugin_author = "imaliang"
     # 作者主页
@@ -107,7 +107,7 @@ class CnlangSignin(_PluginBase):
                 mtype=NotificationType.Plugin,
                 title="🏷︎ 国语视界签到 ✴️",
                 text=f"执行时间：{sign_time}\n"
-                     f"{text}")
+                f"{text}")
 
     def __send_success_msg(self, text):
         logger.info(text)
@@ -169,7 +169,8 @@ class CnlangSignin(_PluginBase):
             self.__send_fail_msg("未获取到 formhash 值")
             return
 
-        totalContinuousCheckIn = re.search(r'<p>您本月已累计签到:<b>(.*?)</b>', user_info)
+        totalContinuousCheckIn = re.search(
+            r'<p>您本月已累计签到:<b>(.*?)</b>', user_info)
         if totalContinuousCheckIn:
             totalContinuousCheckIn = int(totalContinuousCheckIn.group(1)) + 1
             logger.info(f"您本月已累计签到：{totalContinuousCheckIn}")

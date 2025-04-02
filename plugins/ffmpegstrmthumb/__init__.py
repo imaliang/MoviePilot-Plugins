@@ -27,7 +27,7 @@ class FFmpegStrmThumb(_PluginBase):
     # 插件图标
     plugin_icon = "https://raw.githubusercontent.com/imaliang/MoviePilot-Plugins/main/icons/ffmpegstrm.png"
     # 插件版本
-    plugin_version = "0.6"
+    plugin_version = "1.2"
     # 插件作者
     plugin_author = "imaliang"
     # 作者主页
@@ -81,17 +81,20 @@ class FFmpegStrmThumb(_PluginBase):
                 try:
 
                     self._scheduler.add_job(func=self.__libraryscan,
-                                            trigger=CronTrigger.from_crontab(self._cron),
+                                            trigger=CronTrigger.from_crontab(
+                                                self._cron),
                                             name="FFmpegStrm缩略图",
                                             args=[False])
                 except Exception as e:
                     logger.error(f"FFmpegStrm缩略图服务启动失败，原因：{str(e)}")
-                    self.systemmessage.put(f"FFmpegStrm缩略图服务启动失败，原因：{str(e)}", title="FFmpegStrm缩略图")
+                    self.systemmessage.put(
+                        f"FFmpegStrm缩略图服务启动失败，原因：{str(e)}", title="FFmpegStrm缩略图")
             if self._onlyonce:
                 logger.info(f"FFmpegStrm缩略图服务，立即运行一次")
                 is_overlay = self._overlay
                 self._scheduler.add_job(func=self.__libraryscan, trigger='date',
-                                        run_date=datetime.now(tz=pytz.timezone(settings.TZ)) + timedelta(seconds=3),
+                                        run_date=datetime.now(tz=pytz.timezone(
+                                            settings.TZ)) + timedelta(seconds=3),
                                         name="FFmpegStrm缩略图",
                                         args=[is_overlay])
                 # 关闭一次性开关
@@ -383,7 +386,8 @@ class FFmpegStrmThumb(_PluginBase):
         with ffmpeg_lock:
             try:
                 if not is_overlay:
-                    thumb_path = file_path.with_name(file_path.stem + "-thumb.jpg")
+                    thumb_path = file_path.with_name(
+                        file_path.stem + "-thumb.jpg")
                     if thumb_path.exists():
                         logger.debug(f"缩略图已存在：{thumb_path}")
                         return

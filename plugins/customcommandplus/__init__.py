@@ -24,7 +24,7 @@ class CustomCommandPlus(_PluginBase):
     # 插件图标
     plugin_icon = "https://raw.githubusercontent.com/imaliang/MoviePilot-Plugins/main/icons/bot.png"
     # 插件版本
-    plugin_version = "0.9"
+    plugin_version = "1.2"
     # 插件作者
     plugin_author = "imaliang"
     # 作者主页
@@ -154,7 +154,8 @@ class CustomCommandPlus(_PluginBase):
         else:
             logger.error(f"执行命令：{command} 失败")
 
-        result_obj = self.__load_result(last_output if last_output else last_error)
+        result_obj = self.__load_result(
+            last_output if last_output else last_error)
 
         # 读取历史记录
         history = self.get_data('history') or []

@@ -25,7 +25,7 @@ class SSDForumSignin(_PluginBase):
     # 插件图标
     plugin_icon = "https://raw.githubusercontent.com/imaliang/MoviePilot-Plugins/main/icons/ssdforum.png"
     # 插件版本
-    plugin_version = "1.1"
+    plugin_version = "1.2"
     # 插件作者
     plugin_author = "imaliang"
     # 作者主页
@@ -111,7 +111,7 @@ class SSDForumSignin(_PluginBase):
                 mtype=NotificationType.Plugin,
                 title="🏷︎ SSDForum签到 ✴️",
                 text=f"执行时间：{sign_time}\n"
-                     f"{text}")
+                f"{text}")
 
     def __send_success_msg(self, text):
         logger.info(text)

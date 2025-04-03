@@ -1,0 +1,14 @@
+{
+    "CMSNotify": {
+        "name": "CMS通知",
+        "description": "整理完成115里的媒体后，通知CMS进行增量同步（strm生成）",
+        "labels": "消息通知,媒体库,STRM",
+        "version": "0.1",
+        "icon": "https://raw.githubusercontent.com/imaliang/MoviePilot-Plugins/main/icons/cms.png",
+        "author": "imaliang",
+        "level": 1,
+        "history": {
+            "v0.1": "整理完成115里的媒体后，通知CMS进行增量同步（strm生成）"
+        }
+    }
+}

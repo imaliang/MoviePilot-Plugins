@@ -17,7 +17,7 @@ class CMSNotify(_PluginBase):
     # 插件描述
     plugin_desc = "整理完成115里的媒体后，通知CMS进行增量同步（strm生成）"
     # 插件图标
-    plugin_icon = "webhook.png"
+    plugin_icon = "https://raw.githubusercontent.com/imaliang/MoviePilot-Plugins/main/icons/cms.png"
     # 插件版本
     plugin_version = "0.1"
     # 插件作者

@@ -35,7 +35,7 @@ class FFmpegStrmThumb(_PluginBase):
     # 插件配置项ID前缀
     plugin_config_prefix = "ffmpegstrmthumb_"
     # 加载顺序
-    plugin_order = 3
+    plugin_order = 4
     # 可使用的用户级别
     user_level = 1
 

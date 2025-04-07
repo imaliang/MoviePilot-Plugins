@@ -19,7 +19,7 @@ class CMSNotify(_PluginBase):
     # 插件图标
     plugin_icon = "https://raw.githubusercontent.com/imaliang/MoviePilot-Plugins/main/icons/cms.png"
     # 插件版本
-    plugin_version = "0.2"
+    plugin_version = "0.3"
     # 插件作者
     plugin_author = "imaliang"
     # 作者主页
@@ -32,6 +32,7 @@ class CMSNotify(_PluginBase):
     auth_level = 1
 
     # 私有属性
+    _cms_notify_type = None
     _cms_domain = None
     _cms_api_token = None
     _enabled = False
@@ -42,6 +43,7 @@ class CMSNotify(_PluginBase):
     def init_plugin(self, config: dict = None):
         if config:
             self._enabled = config.get("enabled")
+            self._cms_notify_type = config.get("cms_notify_type")
             self._cms_domain = config.get("cms_domain")
             self._cms_api_token = config.get('cms_api_token')
 
@@ -112,6 +114,33 @@ class CMSNotify(_PluginBase):
                                 'component': 'VCol',
                                 'props': {
                                     'cols': 12,
+                                    'md': 12
+                                },
+                                'content': [
+                                    {
+                                        'component': 'VSelect',
+                                        'props': {
+                                            'model': 'cms_notify_type',
+                                            'label': '通知类型',
+                                            'items': [
+                                                {'title': '增量同步',
+                                                    'value': 'lift_sync'},
+                                                {'title': '增量同步+自动整理',
+                                                    'value': 'auto_organize'},
+                                            ]
+                                        }
+                                    }
+                                ]
+                            },
+                        ]
+                    },
+                    {
+                        'component': 'VRow',
+                        'content': [
+                            {
+                                'component': 'VCol',
+                                'props': {
+                                    'cols': 12,
                                     'md': 6
                                 },
                                 'content': [
@@ -156,7 +185,7 @@ class CMSNotify(_PluginBase):
                                         'props': {
                                             'type': 'info',
                                             'variant': 'tonal',
-                                            'text': '当MP整理或刮削好115里的媒体后，会通知CMS进行增量同步（strm生成）；CMS版本需要3.5.10及以上：https://wiki.cmscc.cc'
+                                            'text': '当MP整理或刮削好115里的媒体后，会通知CMS进行增量同步（strm生成）；CMS版本需要0.3.5.11及以上：https://wiki.cmscc.cc'
                                         }
                                     }
                                 ]
@@ -188,6 +217,7 @@ class CMSNotify(_PluginBase):
             }
         ], {
             "enabled": False,
+            "cms_notify_type": "lift_sync",
             "cms_api_token": "cloud_media_sync",
             "cms_domain": "http://172.17.0.1:9527"
         }
@@ -195,7 +225,7 @@ class CMSNotify(_PluginBase):
     def get_page(self) -> List[dict]:
         pass
 
-    @eventmanager.register(EventType.TransferComplete)
+    @eventmanager.register(EventType)
     def send(self, event):
         """
         向第三方Webhook发送请求
@@ -262,9 +292,8 @@ class CMSNotify(_PluginBase):
     def __notify_cms(self):
         try:
             # 当等待通知数量超过1000或者有等待通知且最后事件时间超过60秒时触发通知
-            if self._wait_notify_count > 0 and (
-                    self._wait_notify_count > 1000 or self.__get_time() - self._last_event_time > 60):
-                url = f"{self._cms_domain}/api/sync/lift_by_token?token={self._cms_api_token}"
+            if self._wait_notify_count > 0 and (self._wait_notify_count > 1000 or self.__get_time() - self._last_event_time > 60):
+                url = f"{self._cms_domain}/api/sync/lift_by_token?token={self._cms_api_token}&type={self._cms_notify_type}"
                 ret = RequestUtils().get_res(url)
                 if ret:
                     logger.info("通知CMS执行增量同步成功")

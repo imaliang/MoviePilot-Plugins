@@ -263,6 +263,8 @@ class CMSNotify(_PluginBase):
 
         version = getattr(settings, "VERSION_FLAG", "v1")
         event_type = event.event_type if version == "v1" else event.event_type.value
+        logger.debug(f"event_type: {event_type}")
+        logger.debug(f"event_data: {event.event_data}")
         if event_type not in ["transfer.complete", "metadata.scrape"]:
             return
         event_data = __to_dict(event.event_data)

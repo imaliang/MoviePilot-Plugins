@@ -19,7 +19,7 @@ class CMSNotify(_PluginBase):
     # 插件图标
     plugin_icon = "https://raw.githubusercontent.com/imaliang/MoviePilot-Plugins/main/icons/cms.png"
     # 插件版本
-    plugin_version = "0.4"
+    plugin_version = "0.5"
     # 插件作者
     plugin_author = "imaliang"
     # 作者主页
@@ -226,9 +226,9 @@ class CMSNotify(_PluginBase):
         pass
 
     @eventmanager.register(EventType)
-    def send(self, event):
+    def monitor(self, event):
         """
-        向第三方Webhook发送请求
+        监听事件
         """
         if not self._enabled or not self._cms_domain or not self._cms_api_token:
             return
@@ -276,14 +276,14 @@ class CMSNotify(_PluginBase):
             if success:
                 storage = transferinfo["target_diritem"]["storage"]
                 name = transferinfo["target_item"]["name"]
-                if storage in ("u115", "115网盘Plus"):
+                if storage in ("u115", "115网盘Plus", 'CloudDrive储存'):
                     logger.info(f"115整理完成：{name}")
                     self._wait_notify_count += 1
                     self._last_event_time = self.__get_time()
         elif event_type == "metadata.scrape":
             storage = event_data["fileitem"]
             name = event_data["name"]
-            if storage in ("u115", "115网盘Plus"):
+            if storage in ("u115", "115网盘Plus", 'CloudDrive储存'):
                 self._wait_notify_count += 1
                 self._last_event_time = self.__get_time()
                 logger.info(f"115刮削完成：{name}")

@@ -1,0 +1,19 @@
+{
+    "CMSNotify": {
+        "name": "CMS通知",
+        "description": "整理完成115里的媒体后，通知CMS进行增量同步（strm生成）",
+        "labels": "消息通知,媒体库,STRM",
+        "version": "1.0.0",
+        "icon": "https://raw.githubusercontent.com/imaliang/MoviePilot-Plugins/main/icons/cms.png",
+        "author": "imaliang",
+        "level": 1,
+        "history": {
+            "v1.0.0": "适配MoviePilot V3稳定SDK，修正刮削事件解析及通知生命周期",
+            "v0.5": "支持CloudDrive储存",
+            "v0.4": "支持115网盘Plus",
+            "v0.3": "支持通知cms进行自动整理",
+            "v0.2": "整理完成115里的媒体后，通知CMS进行增量同步（strm生成）"
+        },
+        "system_version": ">=3.0.0"
+    }
+}
